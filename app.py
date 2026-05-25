@@ -32,6 +32,9 @@ st.markdown("---")
 with st.sidebar:
     st.header("⚙️ Settings")
     api_key = st.text_input("Anthropic API Key", type="password", help="Get yours at console.anthropic.com")
+    openrouter_key = st.text_input("OpenRouter API Key", type="password", help="Get yours at openrouter.ai")
+    google_key = st.text_input("Google API Key", type="password", help="Get yours at aistudio.google.com")
+    
     max_claims = st.slider("Max claims to verify", 3, 15, 8)
     st.markdown("---")
     st.markdown("### How it works")
@@ -143,7 +146,7 @@ def render_result(claim_text: str, result: dict, idx: int):
 """, unsafe_allow_html=True)
 
 # ── Run ───────────────────────────────────────────────────────────────────────
-if uploaded_file and api_key:
+if uploaded_file and api_key and openrouter_key and google_key:
     if st.button("🚀 Run Fact-Check", type="primary"):
         client = anthropic.Anthropic(api_key=api_key)
 
@@ -203,9 +206,9 @@ if uploaded_file and api_key:
         for idx, (claim_text, result) in enumerate(results, 1):
             render_result(claim_text, result, idx)
 
-elif uploaded_file and not api_key:
-    st.warning("⬅️ Please enter your Anthropic API key in the sidebar to proceed.")
-elif api_key and not uploaded_file:
+elif uploaded_file and not (api_key and openrouter_key and google_key):
+    st.warning("⬅️ Please enter Anthropic, OpenRouter, and Google API keys in the sidebar to proceed.")
+elif (api_key and openrouter_key and google_key) and not uploaded_file:
     st.info("⬆️ Upload a PDF file to begin fact-checking.")
 else:
-    st.info("⬆️ Enter your API key in the sidebar in Settings and upload a PDF to get started.")
+    st.info("⬆️ Enter all API keys in the sidebar and upload a PDF to get started.")
