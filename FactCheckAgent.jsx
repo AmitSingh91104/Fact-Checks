@@ -97,7 +97,7 @@ async function verifyClaim(claim, searchQuery) {
   const prompt = `You are a fact-checker with web search access. Verify this claim using live web search.
 
 Claim: "${claim}"
-Search hint: ${searchQuery}
+Search hint: {searchQuery}
 
 Search the web, then return a JSON object:
 - "verdict": "Verified" | "Inaccurate" | "False"
@@ -123,6 +123,9 @@ Return ONLY valid JSON. No markdown.`;
 
 export default function App() {
   const [file, setFile] = useState(null);
+  const [anthropicKey, setAnthropicKey] = useState("");
+  const [openRouterKey, setOpenRouterKey] = useState("");
+  const [googleKey, setGoogleKey] = useState("");
   const [maxClaims, setMaxClaims] = useState(6);
   const [phase, setPhase] = useState("idle"); // idle | extractText | extractClaims | verifying | done
   const [claims, setClaims] = useState([]);
@@ -137,7 +140,7 @@ export default function App() {
   const accuracy = results.length ? Math.round((counts.Verified || 0) / results.length * 100) : 0;
 
   async function runFactCheck() {
-    if (!file) return;
+    if (!file || !anthropicKey || !openRouterKey || !googleKey) return;
     setError(""); setResults([]); setClaims([]); setCurrentIdx(0);
 
     try {
@@ -165,6 +168,7 @@ export default function App() {
     }
   }
 
+  const keysConfigured = anthropicKey && openRouterKey && googleKey;
   const busy = phase !== "idle" && phase !== "done";
 
   return (
@@ -181,7 +185,26 @@ export default function App() {
       <div style={{ maxWidth: 900, margin: "0 auto", padding: "28px 20px" }}>
         {/* Upload card */}
         <div style={{ background: "white", borderRadius: 12, padding: 24, boxShadow: "0 1px 6px rgba(0,0,0,0.08)", marginBottom: 20 }}>
-          <div style={{ fontWeight: 700, fontSize: 16, color: COLORS.navy, marginBottom: 16 }}>📄 Upload PDF Document</div>
+          <div style={{ fontWeight: 700, fontSize: 16, color: COLORS.navy, marginBottom: 16 }}>📄 Setup & Upload PDF Document</div>
+
+          {/* API Keys Configuration Layer */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 20 }}>
+            <div>
+              <label style={{ fontSize: 12, fontWeight: 600, color: "#475569", display: "block", marginBottom: 6 }}>Anthropic API Key</label>
+              <input type="password" placeholder="sk-ant-..." value={anthropicKey} onChange={e => setAnthropicKey(e.target.value)}
+                style={{ width: "100%", padding: "8px 12px", borderRadius: 6, border: "1px solid #CBD5E1", fontSize: 13 }} />
+            </div>
+            <div>
+              <label style={{ fontSize: 12, fontWeight: 600, color: "#475569", display: "block", marginBottom: 6 }}>OpenRouter API Key</label>
+              <input type="password" placeholder="sk-or-..." value={openRouterKey} onChange={e => setOpenRouterKey(e.target.value)}
+                style={{ width: "100%", padding: "8px 12px", borderRadius: 6, border: "1px solid #CBD5E1", fontSize: 13 }} />
+            </div>
+            <div>
+              <label style={{ fontSize: 12, fontWeight: 600, color: "#475569", display: "block", marginBottom: 6 }}>Google API Key</label>
+              <input type="password" placeholder="AIzaSy..." value={googleKey} onChange={e => setGoogleKey(e.target.value)}
+                style={{ width: "100%", padding: "8px 12px", borderRadius: 6, border: "1px solid #CBD5E1", fontSize: 13 }} />
+            </div>
+          </div>
 
           <div
             onClick={() => fileRef.current.click()}
@@ -212,16 +235,16 @@ export default function App() {
 
           <button
             onClick={runFactCheck}
-            disabled={!file || busy}
+            disabled={!file || !keysConfigured || busy}
             style={{
               marginTop: 16, width: "100%", padding: "13px 0",
-              background: (!file || busy) ? "#E2E8F0" : COLORS.teal,
-              color: (!file || busy) ? "#94A3B8" : "white",
+              background: (!file || !keysConfigured || busy) ? "#E2E8F0" : COLORS.teal,
+              color: (!file || !keysConfigured || busy) ? "#94A3B8" : "white",
               border: "none", borderRadius: 8, fontWeight: 700, fontSize: 15,
-              cursor: (!file || busy) ? "default" : "pointer", transition: "all 0.2s"
+              cursor: (!file || !keysConfigured || busy) ? "default" : "pointer", transition: "all 0.2s"
             }}
           >
-            {busy ? "⏳ Analysing..." : "🚀 Run Fact-Check"}
+            {!keysConfigured ? "🔑 Please enter all 3 API keys" : busy ? "⏳ Analysing..." : "🚀 Run Fact-Check"}
           </button>
         </div>
 
