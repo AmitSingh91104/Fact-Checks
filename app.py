@@ -208,4 +208,4 @@ elif uploaded_file and not api_key:
 elif api_key and not uploaded_file:
     st.info("⬆️ Upload a PDF file to begin fact-checking.")
 else:
-    st.info("⬆️ Enter your API key in the sidebar and upload a PDF to get started.")
+    st.info("⬆️ Enter your API key in the sidebar in Settings and upload a PDF to get started.")
