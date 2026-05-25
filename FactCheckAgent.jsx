@@ -97,7 +97,7 @@ async function verifyClaim(claim, searchQuery) {
   const prompt = `You are a fact-checker with web search access. Verify this claim using live web search.
 
 Claim: "${claim}"
-Search hint: {searchQuery}
+Search hint: ${searchQuery}
 
 Search the web, then return a JSON object:
 - "verdict": "Verified" | "Inaccurate" | "False"
@@ -140,7 +140,8 @@ export default function App() {
   const accuracy = results.length ? Math.round((counts.Verified || 0) / results.length * 100) : 0;
 
   async function runFactCheck() {
-    if (!file || !anthropicKey || !openRouterKey || !googleKey) return;
+    // Requires at least one key to execute cleanly
+    if (!file || (!anthropicKey && !openRouterKey && !googleKey)) return;
     setError(""); setResults([]); setClaims([]); setCurrentIdx(0);
 
     try {
@@ -168,7 +169,8 @@ export default function App() {
     }
   }
 
-  const keysConfigured = anthropicKey && openRouterKey && googleKey;
+  // True if at least one input fields has characters in it
+  const keysConfigured = anthropicKey || openRouterKey || googleKey;
   const busy = phase !== "idle" && phase !== "done";
 
   return (
@@ -244,7 +246,7 @@ export default function App() {
               cursor: (!file || !keysConfigured || busy) ? "default" : "pointer", transition: "all 0.2s"
             }}
           >
-            {!keysConfigured ? "🔑 Please enter all 3 API keys" : busy ? "⏳ Analysing..." : "🚀 Run Fact-Check"}
+            {!keysConfigured ? "🔑 Please enter at least one API key" : busy ? "⏳ Analysing..." : "🚀 Run Fact-Check"}
           </button>
         </div>
 
