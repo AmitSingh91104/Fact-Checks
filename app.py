@@ -146,9 +146,14 @@ def render_result(claim_text: str, result: dict, idx: int):
 """, unsafe_allow_html=True)
 
 # ── Run ───────────────────────────────────────────────────────────────────────
-if uploaded_file and api_key and openrouter_key and google_key:
+# Check if at least one key is present
+has_any_key = bool(api_key or openrouter_key or google_key)
+
+if uploaded_file and has_any_key:
     if st.button("🚀 Run Fact-Check", type="primary"):
-        client = anthropic.Anthropic(api_key=api_key)
+        # Uses whichever key is populated to pass into your unaltered logic pipeline
+        active_key = api_key or openrouter_key or google_key
+        client = anthropic.Anthropic(api_key=active_key)
 
         with st.spinner("📄 Extracting text from PDF..."):
             file_bytes = uploaded_file.read()
@@ -206,9 +211,9 @@ if uploaded_file and api_key and openrouter_key and google_key:
         for idx, (claim_text, result) in enumerate(results, 1):
             render_result(claim_text, result, idx)
 
-elif uploaded_file and not (api_key and openrouter_key and google_key):
-    st.warning("⬅️ Please enter Anthropic, OpenRouter, and Google API keys in the sidebar to proceed.")
-elif (api_key and openrouter_key and google_key) and not uploaded_file:
+elif uploaded_file and not has_any_key:
+    st.warning("⬅️ Please enter at least one API key in the sidebar to proceed.")
+elif has_any_key and not uploaded_file:
     st.info("⬆️ Upload a PDF file to begin fact-checking.")
 else:
-    st.info("⬆️ Enter all API keys in the sidebar and upload a PDF to get started.")
+    st.info("⬆️ Enter an API key in the sidebar and upload a PDF to get started.")
